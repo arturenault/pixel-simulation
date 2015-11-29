@@ -1,0 +1,21 @@
+Beings
+	Attributes
+		Valence
+			There are N/(something) of these at first; beings will fight those they like and breed with the ones they dislike.
+		Strength (Red)
+			Determines resistance to diseases and strength in fights. Decreases over time.
+		Fertility (Green)
+			If next to other being for a while, the lowest of the two fertilities defines threshold for random draw. If drawn below,
+		Creativity (Blue)
+			Acts as an added bonus to any draw. Grows over time in periods of survival.
+
+	Actions
+		Reproduction
+			If next to another being with the same valence for a while (tbd), roll fertility from the less fertile being to spawn a new being with the same valence, and a normal distribution draw from the other three attributes, with the mean being the average of the two, and the standard deviation being the separation of the two from the mean.
+		Battle
+			If meet a being with a different valence, fight them. Both beings roll strength, and the being with the highest roll damages the other for that value.
+
+Land 
+	Attributes
+		Hostility
+			Defines probability of dying from diseases (need to find a good random way of distributing this continuously and randomly. potentially generate bodies of "water" and then increase hostility from there?)
