@@ -44,10 +44,10 @@ public class Simulator extends JFrame {
 
   private void createElements() { // Build elements within the frame
     sizeLabel = new JLabel("Size");
-    sizeField = new JTextField("1000", 5);
+    sizeField = new JTextField("100", 5);
     populationLabel = new JLabel("Population");
     populationField = new JTextField("20", 5);
-    world = new World(500, 20);
+    world = new World(100, 20);
     canvas = new WorldPanel(world);
 
     start = new JButton("Start");
@@ -99,6 +99,20 @@ public class Simulator extends JFrame {
   }
 
   void start() {
+    int i = 0;
+    boolean repeat = true;
+    while(repeat) {
+      System.out.println(++i);
+      getContentPane().remove(canvas);
+      repeat = world.next();
+      canvas = new WorldPanel(world);
+      getContentPane().add(canvas, BorderLayout.CENTER);
+      validate(); 
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+      }
+    }
   }
 
   public static void main(String args[]) {

@@ -23,12 +23,15 @@ public class Being {
     creativity  = gen.nextDouble();
   }
 
-  public Being(Being father, Being mother) {
+  public Being(Being father, Being mother, int x, int y) {
     if (father.valence == mother.valence) {
       valence = father.valence;
     } else {
       throw new IllegalArgumentException("Parents must have the same valence.");
     }
+
+    this.x = x;
+    this.y = y;
 
     strength = father.strength + mother.strength + gen.nextGaussian() * (mother.strength - father.strength) / 2;
 
