@@ -24,24 +24,29 @@ public class WorldPanel extends JPanel {
     setBackground(Color.black);
     g.setColor(getBackground());
     g.fillRect(0,0, Simulator.FRAME_WIDTH, Simulator.FRAME_WIDTH);
-    Being[][] beings = world.land;  
-    for (int i = 0; i < beings.length; i++) {
-      for (int j = 0; j < beings[i].length; j++) {
-        if(beings[i][j] != null) {
-          drawBeing(beings[i][j], g);
-        }  
-      }
+    for (Being b : world.beings) {
+      if (b.dead) continue;
+
+      drawBeing(b, g);
     }
     validate();
   }
 
   public void drawBeing(Being b, Graphics g) {
-    g.setColor(new Color((float) b.strength, (float) b.fertility, (float) b.creativity));
+    try {
+      g.setColor(new Color((float) b.strength, (float) b.fertility, (float) b.creativity));
+    } catch(IllegalArgumentException e) {
+      System.out.println(b);
+    }
     g.fillRect(adjust(b.x), adjust(b.y), pointSize, pointSize);
   }
 
+  public void testBlue(Graphics g) {
+    g.setColor(Color.blue);
+    g.fillRect(0,0, 100, 100);
+  }
+
   public int adjust(int location) {
-    int x = (int) (location / (double) size * Simulator.FRAME_WIDTH);
-    return x;
+    return (int) (location / (double) size * Simulator.FRAME_WIDTH);
   }
 }

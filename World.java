@@ -1,9 +1,15 @@
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Random;
+import java.util.*;
 
 enum Direction {
-  NORTH, EAST, SOUTH, WEST
+  NORTH, EAST, SOUTH, WEST;
+
+  private static final List<Direction> VALUES = Collections.unmodifiableList(Arrays.asList(values()));
+  private static final int SIZE = VALUES.size();
+  private static final Random RANDOM = new Random();
+
+  public static Direction random() {
+    return VALUES.get(RANDOM.nextInt(SIZE));
+  }
 }
 
 public class World {
@@ -43,12 +49,19 @@ public class World {
   }
 
   public void move(Being b, int x, int y) {
-    if (Math.abs(x - b.x) > 1 || Math.abs(y-b.y) > 1)
-      throw new IllegalArgumentException("Beings can only move one space per turn"); 
+    if(Math.abs(x) + Math.abs(y) > 1) {
+      throw new IllegalArgumentException("Beings can only move a space at a " +
+              "time");
+    }
+
+    if (x < 0 && b.x == 0) x = 0;
+    if (y < 0 && b.y == 0) y = 0;
+    if (x > 0 && b.x == size - 1) x = 0;
+    if (y > 0 && b.y == size - 1) y = 0;
 
     land[b.x][b.y] = null;
-    b.x = x;
-    b.y = y;
+    b.x += x;
+    b.y += y;
     land[b.x][b.y] = b;
   }
 
@@ -73,16 +86,14 @@ public class World {
   }
 
   public void kill(Being b) {
-    beings.remove(b);
+    b.kill();
     land[b.x][b.y] = null;
   }
 
-  public Direction randomDirection() {
-    return Direction.values()[gen.nextInt(Direction.values().length)];
-  }
 
 
-  public void reproduce(Being b1, Being b2) {
+
+  public Being reproduce(Being b1, Being b2) {
     int x, y;
     if (gen.nextInt(2) == 0) {
       x = b1.x;
@@ -92,39 +103,42 @@ public class World {
       y = b2.y;
     }
     do {
-      Direction direction = randomDirection();
+      Direction direction = Direction.random();
       switch (direction) {
         case NORTH:
-          y++; break;
+          if (y < size - 1) y++; break;
         case SOUTH:
-          y--; break;
+          if (y > 0) y--; break;
         case EAST:
-          x++; break;
+          if (x < size - 1) x++; break;
         case WEST:
-          x--; break;
+          if (x > 0) x--; break;
       }
     } while (land[x][y] != null);
 
     land[x][y] = new Being(b1, b2, x, y);
-    beings.add(land[x][y]);
+    return land[x][y];
   }
 
   public synchronized boolean next() {
     int index = 0;
-   
-    System.out.println(beings.size());
     if (beings.isEmpty()) return false;
-    
-    Being b = beings.get(0);
-    while (index < beings.size()) {
-      if (index > 0) { index = beings.indexOf(b) + 1;}
-      b = beings.get(index);
+
+    System.out.println(beings.size());
+    ListIterator<Being> iter = beings.listIterator();
+    while (iter.hasNext()) {
+      Being b = iter.next();
+
+      if (b.dead) {
+        iter.remove();
+        continue;
+      }
 
       // handle hostility
       double damage = roll(hostility[b.x][b.y] / 100);
       double resilience = roll(b.strength);
       if (damage > resilience) {
-        //kill(b);
+        kill(b);
       }
 
       // handle neighbors
@@ -134,8 +148,8 @@ public class World {
       neighbors[2] = b.y - 1 > 0 ? land[b.x][b.y - 1] : null;
       neighbors[3] = b.y + 1 < size ? land[b.x][b.y + 1] : null;
 
-      for(int i = 0; i < neighbors.length; i++) {
-        if(neighbors[i] == null) continue;
+      for (int i = 0; i < neighbors.length; i++) {
+        if (neighbors[i] == null) continue;
 
         if (neighbors[i].valence == b.valence) {
           double fertility;
@@ -145,29 +159,32 @@ public class World {
             fertility = roll(neighbors[i].fertility);
           }
 
-          if (roll(1) / 10 < fertility) { 
-            reproduce(neighbors[i], b);
+          if (roll(1) / 10 < fertility) {
+            iter.add(reproduce(neighbors[i], b));
           }
         } else {
-          if(roll(b.strength) > roll(neighbors[i].strength)) {
+          if (roll(b.strength) > roll(neighbors[i].strength)) {
             kill(neighbors[i]);
           } else {
             kill(b);
           }
         }
+      }
+      Direction d = Direction.random();
 
-        Direction d = randomDirection();
-
-        switch(d) {
-          case NORTH:
-            move(b, b.x, b.y + 1); break;
-          case SOUTH:
-            move(b, b.x, b.y - 1); break;
-          case EAST:
-            move(b, b.x + 1, b.y); break;
-          case WEST:
-            move(b, b.x - 1, b.y); break;
-        }
+      switch (d) {
+        case NORTH:
+          move(b, 0, 1);
+          break;
+        case SOUTH:
+          move(b, 0, -1);
+          break;
+        case EAST:
+          move(b, 1, 0);
+          break;
+        case WEST:
+          move(b, -1, 0);
+          break;
       }
     }
     return true;

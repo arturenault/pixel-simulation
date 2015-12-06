@@ -8,12 +8,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Stack;
 import java.awt.Color;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.*;
 import java.awt.Graphics;
 
 public class Simulator extends JFrame {
@@ -33,11 +28,12 @@ public class Simulator extends JFrame {
 
   private JButton start;
   private WorldPanel canvas;
+  private Timer timer;
 
   public Simulator() {
     createElements();
     createFrame();
-    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     setSize(FRAME_WIDTH, FRAME_HEIGHT);
     setResizable(false);
   }
@@ -50,8 +46,17 @@ public class Simulator extends JFrame {
     world = new World(100, 20);
     canvas = new WorldPanel(world);
 
+
+    ActionListener a1 = new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        world.next();
+        canvas.repaint();
+      }
+    };
+    timer = new Timer(100, a1);
+
     start = new JButton("Start");
-    class startListener implements ActionListener {
+    ActionListener a2 = new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         try {
           size = Integer.parseInt(sizeField.getText());
@@ -60,15 +65,15 @@ public class Simulator extends JFrame {
           world = new World(size, population);
           canvas = new WorldPanel(world);
           getContentPane().add(canvas, BorderLayout.CENTER);
-          validate(); 
-          start();
+          revalidate();
+          repaint();
+          timer.start();
         } catch (NumberFormatException e1) {
           System.out.println("Please input a number!");
         }
       }
-    }
-    ActionListener listener1 = new startListener();
-    start.addActionListener(listener1);
+    };
+    start.addActionListener(a2);
   }
 
   private void createFrame() { // Puts frame together
@@ -99,15 +104,14 @@ public class Simulator extends JFrame {
   }
 
   void start() {
-    int i = 0;
     boolean repeat = true;
     while(repeat) {
-      System.out.println(++i);
       getContentPane().remove(canvas);
       repeat = world.next();
       canvas = new WorldPanel(world);
       getContentPane().add(canvas, BorderLayout.CENTER);
-      validate(); 
+      revalidate();
+      repaint();
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {
