@@ -1,7 +1,8 @@
 import java.util.*;
+import com.badlogic.gdx.tests.g3d.voxel.PerlinNoiseGenerator;
 
 enum Direction {
-  NORTH, EAST, SOUTH, WEST;
+  NORTH, EAST, SOUTH, WEST, NONE;
 
   private static final List<Direction> VALUES = Collections.unmodifiableList(Arrays.asList(values()));
   private static final int SIZE = VALUES.size();
@@ -13,29 +14,42 @@ enum Direction {
 }
 
 public class World {
+  private int turn;
   protected int size;
   protected int population;
   protected Being[][] land;
   protected ArrayList<Being> beings;
-  private double[][] hostility;
+  protected float[][] hostility;
+  private float favorability;
+  private float fertility;
   private Random gen;
+  private int valences;
+  private final int octaves = 4;
+  private int gestation;
 
-  public World(int s, int initialPopulation) {
+  public World() {
+    beings = new ArrayList<Being>();
+    size = 100;
+  }
+
+  public World(int size, int population, float fertility, float favorability,
+               int
+          valences) {
+    turn = 0;
     gen = new Random();
-    size = s;
-    population = initialPopulation;
+    this.valences = valences;
+    this.size = size;
+    this.favorability = favorability;
+    this.fertility = fertility;
+    this.population = population;
 
     beings = new ArrayList<Being>();
     land = new Being[size][size];
-    hostility = new double[size][size];
 
-    for (int i = 0; i < size; i++) {
-      for (int j = 0; j < size; j++) {
-        hostility[i][j] = gen.nextDouble(); // TODO find good way of creating appropriately distributed hostilities
-      }
-    }
+    hostility = PerlinNoiseGenerator.generateSmoothNoise(PerlinNoiseGenerator
+            .generateWhiteNoise(size, size), octaves);
 
-    for (int i = 0; i < initialPopulation; i++) {
+    for (int i = 0; i < population; i++) {
       int x, y; 
 
       do {
@@ -43,7 +57,7 @@ public class World {
         y = gen.nextInt(size);
       } while(land[x][y] != null);
 
-      land[x][y] = new Being(i % 2, x, y); //TODO determine correct number of valences
+      land[x][y] = new Being(i % valences, x, y);
       beings.add(land[x][y]);
     }
   }
@@ -58,6 +72,8 @@ public class World {
     if (y < 0 && b.y == 0) y = 0;
     if (x > 0 && b.x == size - 1) x = 0;
     if (y > 0 && b.y == size - 1) y = 0;
+
+    if (land[b.x + x][b.y + y] != null) return;
 
     land[b.x][b.y] = null;
     b.x += x;
@@ -93,8 +109,15 @@ public class World {
 
 
 
-  public Being reproduce(Being b1, Being b2) {
-    int x, y;
+  public synchronized Being reproduce(Being b1, Being b2) {
+
+    if (turn - b1.reproduced < gestation || turn - b2.reproduced < gestation) {
+      return null;
+    } else {
+      b1.reproduced = turn;
+      b2.reproduced = turn;
+    }
+    int x, y, counter = 0;
     if (gen.nextInt(2) == 0) {
       x = b1.x;
       y = b1.y;
@@ -103,6 +126,7 @@ public class World {
       y = b2.y;
     }
     do {
+      if (counter++ > 1) return null;
       Direction direction = Direction.random();
       switch (direction) {
         case NORTH:
@@ -120,11 +144,38 @@ public class World {
     return land[x][y];
   }
 
+  public Direction chooseDirection(Being b) {
+    if (b.dead) return Direction.NONE;
+
+    float minHostility = hostility[b.x][b.y];
+    Direction bestDirection = Direction.NONE;
+
+    if (b.x > 0 && hostility[b.x - 1][b.y] < minHostility) {
+      minHostility = hostility[b.x - 1][b.y];
+      bestDirection = Direction.WEST;
+    }
+
+    if (b.x < size - 1 && hostility[b.x + 1][b.y] < minHostility) {
+      minHostility = hostility[b.x + 1][b.y];
+      bestDirection = Direction.EAST;
+    }
+
+    if (b.y > 0 && hostility[b.x][b.y - 1] < minHostility) {
+      minHostility = hostility[b.x][b.y - 1];
+      bestDirection = Direction.SOUTH;
+    }
+
+    if (b.y < size - 1 && hostility[b.x][b.y + 1] < minHostility) {
+      bestDirection = Direction.NORTH;
+    }
+
+    return bestDirection;
+  }
+
   public synchronized boolean next() {
     int index = 0;
     if (beings.isEmpty()) return false;
 
-    System.out.println(beings.size());
     ListIterator<Being> iter = beings.listIterator();
     while (iter.hasNext()) {
       Being b = iter.next();
@@ -135,8 +186,8 @@ public class World {
       }
 
       // handle hostility
-      double damage = roll(hostility[b.x][b.y] / 100);
-      double resilience = roll(b.strength);
+      double damage = roll(hostility[b.x][b.y] * favorability);
+      double resilience = roll(b.strength) + roll(b.intelligence);
       if (damage > resilience) {
         kill(b);
       }
@@ -152,25 +203,40 @@ public class World {
         if (neighbors[i] == null) continue;
 
         if (neighbors[i].valence == b.valence) {
-          double fertility;
+          double pregnancy;
           if (neighbors[i].fertility > b.fertility) {
-            fertility = roll(b.fertility);
+            pregnancy = roll(b.fertility);
           } else {
-            fertility = roll(neighbors[i].fertility);
+            pregnancy = roll(neighbors[i].fertility);
           }
 
-          if (roll(1) / 10 < fertility) {
-            iter.add(reproduce(neighbors[i], b));
+          double intelligence;
+          if (neighbors[i].intelligence > b.intelligence) {
+            intelligence = roll(neighbors[i].intelligence);
+          } else {
+            intelligence = roll(b.intelligence);
+          }
+
+          if (roll(1) / fertility < pregnancy + intelligence) {
+            Being newBeing = reproduce(neighbors[i], b);
+            if (newBeing != null) {
+              iter.add(newBeing);
+            }
+          }
+
+          if (neighbors[i].intelligence > b.intelligence) {
+            b.intelligence += (neighbors[i].intelligence - b.intelligence) / 10;
           }
         } else {
-          if (roll(b.strength) > roll(neighbors[i].strength)) {
+          if (roll(b.strength) + roll(b.intelligence) > roll(neighbors[i]
+                  .strength) + roll(neighbors[i].intelligence)) {
             kill(neighbors[i]);
           } else {
             kill(b);
           }
         }
       }
-      Direction d = Direction.random();
+      Direction d = chooseDirection(b);
 
       switch (d) {
         case NORTH:
@@ -185,8 +251,11 @@ public class World {
         case WEST:
           move(b, -1, 0);
           break;
+        default:
+          break;
       }
     }
+    turn++;
     return true;
   }
 }
