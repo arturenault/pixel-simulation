@@ -1,4 +1,7 @@
 /*******************************************************************************
+ * This file taken from libgdx at
+ * https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/g3d/voxel/PerlinNoiseGenerator.java
+ * 
  * Copyright 2011
  * Mario Zechner <badlogicgames@gmail.com>
  * Nathan Sweet <nathan.sweet@gmail.com>
