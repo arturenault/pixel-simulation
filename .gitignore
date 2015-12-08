@@ -1,1 +1,6 @@
 *.class
+out/
+.idea
+simulation.iml
+simulation.properties
+*.xml

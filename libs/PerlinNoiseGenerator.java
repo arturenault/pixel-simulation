@@ -22,7 +22,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.badlogic.gdx.tests.g3d.voxel;
+package libs;
 
 /** Adapted from <a href="http://devmag.org.za/2009/04/25/perlin-noise/">http://devmag.org.za/2009/04/25/perlin-noise/</a>
  * @author badlogic */

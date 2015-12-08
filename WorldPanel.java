@@ -1,17 +1,18 @@
-import java.awt.Color;
-import java.awt.Graphics;
-
-import javax.swing.JPanel;
+import javax.swing.*;
+import java.awt.*;
 
 public class WorldPanel extends JPanel {
   World world;
   int size;
   int pointSize;
+  int canvasWidth;
 
   public WorldPanel(World w) {
     world = w;
     size = world.size;
     pointSize =(int)((double) Simulator.FRAME_WIDTH / size);
+    canvasWidth = size * pointSize;
+    setPreferredSize(new Dimension(canvasWidth, canvasWidth));
   }
 
   @Override

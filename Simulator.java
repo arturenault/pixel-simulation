@@ -1,11 +1,11 @@
+import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import javax.imageio.ImageIO;
-import javax.swing.*;
 
 public class Simulator extends JFrame {
 
@@ -40,6 +40,7 @@ public class Simulator extends JFrame {
   private JButton pause;
   private JButton save;
   private JPanel buttonPane;
+  private JPanel controlPanel;
   private WorldPanel canvas;
   private Timer timer;
 
@@ -60,6 +61,10 @@ public class Simulator extends JFrame {
     setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     setSize(FRAME_WIDTH, FRAME_HEIGHT);
     setResizable(false);
+  }
+
+  public static void main(String args[]) {
+    (new Simulator()).setVisible(true);
   }
 
   private void createElements() { // Build elements within the frame
@@ -104,12 +109,17 @@ public class Simulator extends JFrame {
           canvas = new WorldPanel(world);
           getContentPane().add(canvas, BorderLayout.CENTER);
           revalidate();
-          repaint();
-          timer.setDelay((int) (1000.0/fps));
+          setSize(canvas.getPreferredSize().width, canvas.getPreferredSize()
+                  .height + controlPanel.getHeight());
+          timer.setDelay((int) (1000.0 / fps));
           timer.start();
         } catch (NumberFormatException e1) {
           messageLabel.setText("Please input a number greater than 0!");
         } catch (ArithmeticException e2) {
+          messageLabel.setText("Please input a number greater than 0!");
+        } catch (IllegalArgumentException e3) {
+          messageLabel.setText("Please input a number greater than 0!");
+        } catch (NegativeArraySizeException e4) {
           messageLabel.setText("Please input a number greater than 0!");
         }
       }
@@ -172,11 +182,11 @@ public class Simulator extends JFrame {
     Container pane = getContentPane();
     pane.setLayout(new BorderLayout());
 
-    JPanel controlPanel = new JPanel();
+    controlPanel = new JPanel();
     controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
 
     JPanel fieldPane = new JPanel();
-    fieldPane.setLayout(new BoxLayout(fieldPane, BoxLayout.LINE_AXIS));
+    fieldPane.setLayout(new BoxLayout(fieldPane, BoxLayout.X_AXIS));
 
     fieldPane.add(sizeLabel);
     fieldPane.add(sizeField);
@@ -190,11 +200,10 @@ public class Simulator extends JFrame {
     fieldPane.add(valencesField);
 
     JPanel messagePane = new JPanel();
-    fieldPane.setLayout(new BoxLayout(fieldPane, BoxLayout.LINE_AXIS));
     messagePane.add(messageLabel);
 
     buttonPane = new JPanel();
-    buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
+    buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.X_AXIS));
 
     buttonPane.add(start);
     buttonPane.add(pause);
@@ -205,12 +214,13 @@ public class Simulator extends JFrame {
     controlPanel.add(fieldPane);
     controlPanel.add(buttonPane);
     controlPanel.add(messagePane);
+    controlPanel.setSize(getWidth(), 50);
+
+    JPanel wrapper = new JPanel();
+    wrapper.setLayout(new BoxLayout(wrapper, BoxLayout.LINE_AXIS));
+    wrapper.add(canvas);
 
     pane.add(controlPanel, BorderLayout.PAGE_START);
-    pane.add(canvas, BorderLayout.CENTER);
-  }
-
-  public static void main(String args[]) {
-    (new Simulator()).setVisible(true);
+    pane.add(wrapper, BorderLayout.CENTER);
   }
 }
