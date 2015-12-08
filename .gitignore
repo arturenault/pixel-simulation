@@ -4,3 +4,4 @@ out/
 simulation.iml
 simulation.properties
 *.xml
+META-INF/
