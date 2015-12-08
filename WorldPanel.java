@@ -11,15 +11,13 @@ public class WorldPanel extends JPanel {
   public WorldPanel(World w) {
     world = w;
     size = world.size;
-    pointSize = (int) ((float)Simulator.FRAME_WIDTH / size);
+    pointSize =(int)((double) Simulator.FRAME_WIDTH / size);
   }
 
   @Override
   protected void paintComponent(Graphics g) {
     //*
     setBackground(Color.black);
-    g.setColor(getBackground());
-    g.fillRect(0,0, Simulator.FRAME_WIDTH, Simulator.FRAME_WIDTH);
     for (Being b : world.beings) {
       if (b == null || b.dead) continue;
 
@@ -52,6 +50,6 @@ public class WorldPanel extends JPanel {
   }
 
   public int adjust(int location) {
-    return (int) (location / (double) size * Simulator.FRAME_WIDTH);
+    return location * pointSize;
   }
 }

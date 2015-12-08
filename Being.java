@@ -50,8 +50,7 @@ public class Being {
     if (fertility > 1) fertility = 1;
     if (fertility < 0) fertility = 0;
 
-    intelligence = (father.intelligence + mother.intelligence) / 2 + Math.max
-            (gen.nextGaussian(), 0)
+    intelligence = (father.intelligence + mother.intelligence) / 2 + gen.nextGaussian()
             *
             (mother.intelligence - father.intelligence) / 2;
     if (intelligence > 1) intelligence = 1;

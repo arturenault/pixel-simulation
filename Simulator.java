@@ -1,7 +1,10 @@
-import java.awt.BorderLayout;
-import java.awt.Container;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class Simulator extends JFrame {
@@ -24,7 +27,9 @@ public class Simulator extends JFrame {
   private JLabel hostilityLabel;
   private JLabel fpsLabel;
   private JLabel valencesLabel;
+  private JLabel messageLabel;
   private JTextField sizeField;
+  private JFileChooser pathChooser;
   private JTextField populationField;
   private JTextField infertilityField;
   private JTextField hostilityField;
@@ -33,18 +38,32 @@ public class Simulator extends JFrame {
 
   private JButton start;
   private JButton pause;
+  private JButton save;
+  private JPanel buttonPane;
   private WorldPanel canvas;
   private Timer timer;
 
   public Simulator() {
     createElements();
     createFrame();
+    try {
+      UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+    } catch (InstantiationException e) {
+      e.printStackTrace();
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();
+    } catch (UnsupportedLookAndFeelException e) {
+      e.printStackTrace();
+    }
     setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     setSize(FRAME_WIDTH, FRAME_HEIGHT);
     setResizable(false);
   }
 
   private void createElements() { // Build elements within the frame
+    messageLabel = new JLabel("");
     sizeLabel = new JLabel("Size");
     sizeField = new JTextField("100", 5);
     populationLabel = new JLabel("Population");
@@ -57,6 +76,7 @@ public class Simulator extends JFrame {
     valencesField = new JTextField("3", 5);
     fpsLabel = new JLabel("FPS");
     fpsField = new JTextField("20", 5);
+    pathChooser = new JFileChooser("Location");
     world = new World();
     canvas = new WorldPanel(world);
     ActionListener a1 = new ActionListener() {
@@ -71,6 +91,7 @@ public class Simulator extends JFrame {
     ActionListener a2 = new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         try {
+          messageLabel.setText("");
           size = Integer.parseInt(sizeField.getText());
           population = Integer.parseInt(populationField.getText());
           valences = Integer.parseInt(valencesField.getText());
@@ -87,7 +108,9 @@ public class Simulator extends JFrame {
           timer.setDelay((int) (1000.0/fps));
           timer.start();
         } catch (NumberFormatException e1) {
-          System.out.println("Please input a number!");
+          messageLabel.setText("Please input a number greater than 0!");
+        } catch (ArithmeticException e2) {
+          messageLabel.setText("Please input a number greater than 0!");
         }
       }
     };
@@ -106,6 +129,43 @@ public class Simulator extends JFrame {
       }
     };
     pause.addActionListener(a3);
+
+    save = new JButton("Save as...");
+    ActionListener a4 = new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (pathChooser.showSaveDialog(buttonPane) != JFileChooser
+                .APPROVE_OPTION) {
+          return;
+        }
+        File file = pathChooser.getSelectedFile();
+        if (file.isDirectory()) {
+          messageLabel.setText("Please select an output file");
+          return;
+        }
+        if (file.exists()) {
+          int reply = JOptionPane.showConfirmDialog(null, "Overwrite?", "File" +
+                  " " +
+                  "already exists", JOptionPane.YES_NO_OPTION);
+          if (reply == JOptionPane.NO_OPTION) {
+            return;
+          }
+        }
+        int width = canvas.getWidth();
+        int height = canvas.getHeight();
+
+        BufferedImage bi = new BufferedImage(width, height, BufferedImage
+                .TYPE_INT_RGB);
+        Graphics2D g = bi.createGraphics();
+        canvas.paint(g);
+        try {
+          ImageIO.write(bi, "png", file);
+        } catch (IOException e1) {
+          messageLabel.setText(e1.getMessage());
+        }
+      }
+    };
+    save.addActionListener(a4);
   }
 
   private void createFrame() { // Puts frame together
@@ -129,18 +189,22 @@ public class Simulator extends JFrame {
     fieldPane.add(valencesLabel);
     fieldPane.add(valencesField);
 
-    JPanel buttonPane = new JPanel();
+    JPanel messagePane = new JPanel();
+    fieldPane.setLayout(new BoxLayout(fieldPane, BoxLayout.LINE_AXIS));
+    messagePane.add(messageLabel);
+
+    buttonPane = new JPanel();
     buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
 
-    buttonPane.add(Box.createHorizontalGlue());
     buttonPane.add(start);
     buttonPane.add(pause);
     buttonPane.add(fpsLabel);
     buttonPane.add(fpsField);
-    buttonPane.add(Box.createHorizontalGlue());
+    buttonPane.add(save);
 
     controlPanel.add(fieldPane);
     controlPanel.add(buttonPane);
+    controlPanel.add(messagePane);
 
     pane.add(controlPanel, BorderLayout.PAGE_START);
     pane.add(canvas, BorderLayout.CENTER);
