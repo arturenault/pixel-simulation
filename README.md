@@ -77,7 +77,7 @@ When run, the following window will open:
 
 ### The Simulator Window
 
-![Screenshot](https://raw.githubusercontent.com/arturenault/trf-simulation/master/screenshot.png =300x)
+![Screenshot](./screenshot.png)
 
 #### Size
 The width of the square simulator world. Works with values 1-800. Keep in 
