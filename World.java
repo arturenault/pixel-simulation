@@ -1,5 +1,6 @@
+import libs.PerlinNoiseGenerator;
+
 import java.util.*;
-import com.badlogic.gdx.tests.g3d.voxel.PerlinNoiseGenerator;
 
 enum Direction {
   NORTH, EAST, SOUTH, WEST, NONE;
@@ -14,17 +15,18 @@ enum Direction {
 }
 
 public class World {
-  private int turn;
+  private final int octaves = 4;
   protected int size;
   protected int population;
   protected Being[][] land;
   protected ArrayList<Being> beings;
   protected float[][] hostility;
-  private float favorability;
-  private float fertility;
+  private int turn;
+  private double favorability;
+  private double fertility;
+  private double intelligenceFactor;
   private Random gen;
   private int valences;
-  private final int octaves = 4;
   private int gestation;
 
   public World() {
@@ -32,21 +34,23 @@ public class World {
     size = 100;
   }
 
-  public World(int size, int population, float fertility, float favorability,
-               int
+  public World(int size, int population, double fertility, double favorability,
+               double intelligenceFactor, int
           valences) {
     turn = 0;
     gen = new Random();
     this.valences = valences;
     this.size = size;
     this.favorability = favorability;
+    this.intelligenceFactor = intelligenceFactor;
     this.fertility = fertility;
     this.population = population;
 
     beings = new ArrayList<Being>();
     land = new Being[size][size];
 
-    hostility = PerlinNoiseGenerator.generateSmoothNoise(PerlinNoiseGenerator
+    hostility = PerlinNoiseGenerator.generateSmoothNoise
+            (PerlinNoiseGenerator
             .generateWhiteNoise(size, size), octaves);
 
     for (int i = 0; i < population; i++) {
@@ -187,7 +191,7 @@ public class World {
 
       // handle hostility
       double damage = roll(hostility[b.x][b.y] * favorability);
-      double resilience = roll(b.strength) + roll(b.intelligence);
+      double resilience = roll(b.strength) + roll(b.intelligence) * intelligenceFactor;
       if (damage > resilience) {
         kill(b);
       }
@@ -199,38 +203,40 @@ public class World {
       neighbors[2] = b.y - 1 > 0 ? land[b.x][b.y - 1] : null;
       neighbors[3] = b.y + 1 < size ? land[b.x][b.y + 1] : null;
 
-      for (int i = 0; i < neighbors.length; i++) {
-        if (neighbors[i] == null) continue;
+      for (Being neighbor : neighbors) {
+        if (neighbor == null) continue;
 
-        if (neighbors[i].valence == b.valence) {
+        if (neighbor.valence == b.valence) {
           double pregnancy;
-          if (neighbors[i].fertility > b.fertility) {
+          if (neighbor.fertility > b.fertility) {
             pregnancy = roll(b.fertility);
           } else {
-            pregnancy = roll(neighbors[i].fertility);
+            pregnancy = roll(neighbor.fertility);
           }
 
           double intelligence;
-          if (neighbors[i].intelligence > b.intelligence) {
-            intelligence = roll(neighbors[i].intelligence);
+          if (neighbor.intelligence > b.intelligence) {
+            intelligence = roll(neighbor.intelligence);
           } else {
             intelligence = roll(b.intelligence);
           }
 
-          if (roll(1) / fertility < pregnancy + intelligence) {
-            Being newBeing = reproduce(neighbors[i], b);
+          if (roll(1) / fertility < pregnancy + intelligence * intelligenceFactor) {
+            Being newBeing = reproduce(neighbor, b);
             if (newBeing != null) {
               iter.add(newBeing);
             }
           }
 
-          if (neighbors[i].intelligence > b.intelligence) {
-            b.intelligence += (neighbors[i].intelligence - b.intelligence) / 10;
+          if (neighbor.intelligence > b.intelligence) {
+            b.intelligence += (neighbor.intelligence - b.intelligence) / 10;
           }
         } else {
-          if (roll(b.strength) + roll(b.intelligence) > roll(neighbors[i]
-                  .strength) + roll(neighbors[i].intelligence)) {
-            kill(neighbors[i]);
+          if (roll(b.strength) + roll(b.intelligence) * intelligenceFactor >
+                  roll
+                          (neighbor
+                                  .strength) + roll(neighbor.intelligence) * intelligenceFactor) {
+            kill(neighbor);
           } else {
             kill(b);
           }

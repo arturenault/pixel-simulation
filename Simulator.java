@@ -15,8 +15,9 @@ public class Simulator extends JFrame {
 
   private int size;
   private int population;
-  private float infertility;
-  private float hostility;
+  private double infertility;
+  private double hostility;
+  private double intelligence;
   private int valences;
   private World world;
   private int fps;
@@ -28,6 +29,7 @@ public class Simulator extends JFrame {
   private JLabel fpsLabel;
   private JLabel valencesLabel;
   private JLabel messageLabel;
+  private JLabel intelligenceLabel;
   private JTextField sizeField;
   private JFileChooser pathChooser;
   private JTextField populationField;
@@ -35,6 +37,7 @@ public class Simulator extends JFrame {
   private JTextField hostilityField;
   private JTextField fpsField;
   private JTextField valencesField;
+  private JTextField intelligenceField;
 
   private JButton start;
   private JButton pause;
@@ -77,6 +80,8 @@ public class Simulator extends JFrame {
     infertilityField = new JTextField("1", 5);
     hostilityLabel = new JLabel("Hostility");
     hostilityField = new JTextField("2", 5);
+    intelligenceLabel = new JLabel("Intelligence");
+    intelligenceField = new JTextField("0.5", 5);
     valencesLabel = new JLabel("Types");
     valencesField = new JTextField("3", 5);
     fpsLabel = new JLabel("FPS");
@@ -98,14 +103,21 @@ public class Simulator extends JFrame {
         try {
           messageLabel.setText("");
           size = Integer.parseInt(sizeField.getText());
+
+          if (size > Simulator.FRAME_WIDTH) {
+            messageLabel.setText("Please pick a size between 1 and " +
+                    Simulator.FRAME_WIDTH);
+            return;
+          }
           population = Integer.parseInt(populationField.getText());
           valences = Integer.parseInt(valencesField.getText());
-          infertility = Float.parseFloat(infertilityField.getText());
-          hostility = Float.parseFloat(hostilityField.getText());
+          infertility = Double.parseDouble(infertilityField.getText());
+          hostility = Double.parseDouble(hostilityField.getText());
+          intelligence = Double.parseDouble(intelligenceField.getText());
           fps = Integer.parseInt(fpsField.getText());
           getContentPane().remove(canvas);
           world = new World(size, population, infertility, hostility,
-                  valences);
+                  intelligence, valences);
           canvas = new WorldPanel(world);
           getContentPane().add(canvas, BorderLayout.CENTER);
           revalidate();
@@ -196,6 +208,8 @@ public class Simulator extends JFrame {
     fieldPane.add(infertilityField);
     fieldPane.add(hostilityLabel);
     fieldPane.add(hostilityField);
+    fieldPane.add(intelligenceLabel);
+    fieldPane.add(intelligenceField);
     fieldPane.add(valencesLabel);
     fieldPane.add(valencesField);
 
