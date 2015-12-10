@@ -12,13 +12,16 @@ public class WorldPanel extends JPanel {
     size = world.size;
     pointSize =(int)((double) Simulator.FRAME_WIDTH / size);
     canvasWidth = size * pointSize;
+    setOpaque(true);
+    setBackground(Color.black);
     setPreferredSize(new Dimension(canvasWidth, canvasWidth));
   }
 
   @Override
   protected void paintComponent(Graphics g) {
     //*
-    setBackground(Color.black);
+    g.setColor(Color.black);
+    g.fillRect(0, 0, getWidth(), getHeight());
     for (Being b : world.beings) {
       if (b == null || b.dead) continue;
 

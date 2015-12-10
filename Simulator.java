@@ -72,17 +72,17 @@ public class Simulator extends JFrame {
 
   private void createElements() { // Build elements within the frame
     messageLabel = new JLabel("");
-    sizeLabel = new JLabel("Size");
+    sizeLabel = new JLabel("Size", SwingConstants.CENTER);
     sizeField = new JTextField("100", 5);
-    populationLabel = new JLabel("Population");
+    populationLabel = new JLabel("Population", SwingConstants.CENTER);
     populationField = new JTextField("1000", 5);
-    infertilityLabel = new JLabel("Fertility");
+    infertilityLabel = new JLabel("Fertility", SwingConstants.CENTER);
     infertilityField = new JTextField("1", 5);
-    hostilityLabel = new JLabel("Hostility");
+    hostilityLabel = new JLabel("Hostility", SwingConstants.CENTER);
     hostilityField = new JTextField("2", 5);
-    intelligenceLabel = new JLabel("Intelligence");
+    intelligenceLabel = new JLabel("Intelligence", SwingConstants.CENTER);
     intelligenceField = new JTextField("0.5", 5);
-    valencesLabel = new JLabel("Types");
+    valencesLabel = new JLabel("Types", SwingConstants.CENTER);
     valencesField = new JTextField("3", 5);
     fpsLabel = new JLabel("FPS");
     fpsField = new JTextField("20", 5);
@@ -197,21 +197,22 @@ public class Simulator extends JFrame {
     controlPanel = new JPanel();
     controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
 
-    JPanel fieldPane = new JPanel();
-    fieldPane.setLayout(new BoxLayout(fieldPane, BoxLayout.X_AXIS));
+    JPanel labelPane = new JPanel();
+    labelPane.setLayout(new GridLayout(2, 6));
 
-    fieldPane.add(sizeLabel);
-    fieldPane.add(sizeField);
-    fieldPane.add(populationLabel);
-    fieldPane.add(populationField);
-    fieldPane.add(infertilityLabel);
-    fieldPane.add(infertilityField);
-    fieldPane.add(hostilityLabel);
-    fieldPane.add(hostilityField);
-    fieldPane.add(intelligenceLabel);
-    fieldPane.add(intelligenceField);
-    fieldPane.add(valencesLabel);
-    fieldPane.add(valencesField);
+    labelPane.add(sizeLabel);
+    labelPane.add(populationLabel);
+    labelPane.add(infertilityLabel);
+    labelPane.add(hostilityLabel);
+    labelPane.add(intelligenceLabel);
+    labelPane.add(valencesLabel);
+
+    labelPane.add(sizeField);
+    labelPane.add(populationField);
+    labelPane.add(infertilityField);
+    labelPane.add(hostilityField);
+    labelPane.add(intelligenceField);
+    labelPane.add(valencesField);
 
     JPanel messagePane = new JPanel();
     messagePane.add(messageLabel);
@@ -225,7 +226,8 @@ public class Simulator extends JFrame {
     buttonPane.add(fpsField);
     buttonPane.add(save);
 
-    controlPanel.add(fieldPane);
+    controlPanel.add(labelPane);
+    controlPanel.add(labelPane);
     controlPanel.add(buttonPane);
     controlPanel.add(messagePane);
     controlPanel.setSize(getWidth(), 50);
